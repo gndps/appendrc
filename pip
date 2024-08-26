@@ -1,0 +1,4 @@
+export PIPX_DEFAULT_PYTHON=/usr/bin/python3
+export PIP_KEYRING_PROVIDER=subprocess
+# Created by `pipx` on 2024-05-30 03:56:20
+export PATH="$PATH:$HOME/.local/bin"
