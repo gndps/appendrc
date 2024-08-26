@@ -6,5 +6,5 @@ Works only when used with [dot bash files](https://github.com/gndps/dot_bash_fil
 
 
 # What users are saying
-"My .bash_profile has never looked so clean" - @doe3_real
-"Just 10 lines .bashrc, I can't believe it" - @firebash22
+- "My .bash_profile has never looked so clean" - @doe3_real
+- "Just 10 lines .bashrc, I can't believe it" - @firebash22
