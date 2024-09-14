@@ -1,37 +1,115 @@
 #!/bin/bash
 
 # Define the directory where files should be created
-export APPENDRC_PATH="$BASH_FILES_DIR/repos/appendrc"
+export APPENDRC_PATH="${BASH_FILES_DIR}/repos/appendrc"
+export APPENDRC_SRC_PATH="${APPENDRC_PATH}/sourcables"
 
 # Function to create a new file and open it with the default editor
-appendrc() {
+appendrc_init() {
     local filename="$1"
 
     # Ensure a filename was provided
     if [[ -z "$filename" ]]; then
-        echo "Usage: appendrc filename"
+        echo "Usage: appendrc init filename"
         echo "Creates an appendrc file that allows bash_files to source it"
-        return
+        return 1
     fi
-    
+
     # Ensure the directory exists
-    mkdir -p "$APPENDRC_PATH"
-    
+    mkdir -p "$APPENDRC_SRC_PATH"
+
     # Create the new file
-    local filepath="$APPENDRC_PATH/$filename"
+    local filepath="$APPENDRC_SRC_PATH/$filename"
     touch "$filepath"
 
-    # add default content to the file
+    # Add default content to the file
     cat > "$filepath" <<- 'EOF'
 	# [ -f "$HOME/.example_package/env" ] && "$HOME/.example_package/env"
 	EOF
-    
+
     # Open the file with the default editor
-    ${EDITOR:-nano} "$filepath"
+    "${EDITOR:-nano}" "$filepath"
+}
+
+# Function to source all files and time them
+appendrc_time() {
+    local time_file="$APPENDRC_PATH/appendrc_time.txt"
+    local fast_file="$APPENDRC_PATH/appendrc_fast"
+    rm -f "$time_file" "$fast_file"
+
+    for file in "$APPENDRC_SRC_PATH"/*; do
+        local filename=$(basename "$file")
+        local start_time=$(date +%s.%N)
+        source "$file"
+        local end_time=$(date +%s.%N)
+        local elapsed_time=$(echo "$end_time - $start_time" | bc)
+        echo "$filename,$elapsed_time" >> "$time_file"
+
+        # Check if elapsed time is less than 1 second
+        if (( $(echo "$elapsed_time < 1" | bc -l) )); then
+            echo "source $file" >> "$fast_file"
+        fi
+    done
+
+    echo "Timing results saved to $time_file"
+    echo "Fast sourcables saved to $fast_file"
+}
+
+# Function to source all files in sourcables
+appendrc_source() {
+    local fast=false
+
+    # Check for --fast flag
+    if [[ "$1" == "--fast" ]]; then
+        fast=true
+        echo "appendrc source --fast"
+    fi
+
+    if $fast; then
+        source $APPENDRC_PATH/appendrc_fast
+    else
+        echo "-- appendrc source --"
+        for file in "$APPENDRC_SRC_PATH"/*; do
+            echo "source $file"
+            source "$file"
+        done
+    fi
+}
+
+# Function to show usage/help
+appendrc_help() {
+    echo "Usage: appendrc <command> [options]"
+    echo "Commands:"
+    echo "  init <filename>        Create a new appendrc file and open it with the default editor"
+    echo "  time                   Source all files in sourcables and record timing"
+    echo "  source [--fast]        Source all files in sourcables, or only those with source time < 0.020 seconds"
+    echo "  -h, --help             Show this help message"
+}
+
+# Main CLI entry point
+appendrc() {
+    local cmd="$1"
+    shift
+
+    case "$cmd" in
+        init)
+            appendrc_init "$@"
+            ;;
+        time)
+            appendrc_time
+            ;;
+        source)
+            appendrc_source "$@"
+            ;;
+        -h|--help|*)
+            appendrc_help
+            ;;
+    esac
 }
 
 # Check if the script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    # Call the appendrc function with the first argument
-    appendrc "$1"
+    appendrc "$@"
 fi
+
+alias arc="appendrc"

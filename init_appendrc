@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+export BASH_FILES_FAST=true
+current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$current_dir/appendrc_cli"
+
+if [[ ${BASH_FILES_FAST:-false} == true ]]; then
+  appendrc source --fast
+else
+  appendrc source
+fi

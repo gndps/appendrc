@@ -1,0 +1,3 @@
+# Ignore all files except appendrc_cli and src_files
+*
+!init_appendrc
