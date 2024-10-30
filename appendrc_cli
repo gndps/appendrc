@@ -76,6 +76,37 @@ appendrc_source() {
     fi
 }
 
+# Function to list all files in sourcables
+appendrc_list() {
+    echo "Files in $APPENDRC_SRC_PATH:"
+    for file in "$APPENDRC_SRC_PATH"/*; do
+        echo "$(basename "$file")"
+    done
+}
+
+# Function to remove a file from sourcables
+appendrc_remove() {
+    local filename="$1"
+
+    # Ensure a filename was provided
+    if [[ -z "$filename" ]]; then
+        echo "Usage: appendrc remove filename"
+        echo "Removes an appendrc file from the sourcables directory"
+        return 1
+    fi
+
+    # Ensure the file exists
+    local filepath="$APPENDRC_SRC_PATH/$filename"
+    if [[ ! -f "$filepath" ]]; then
+        echo "File $filename does not exist in $APPENDRC_SRC_PATH"
+        return 1
+    fi
+
+    # Remove the file
+    rm "$filepath"
+    echo "File $filename removed from $APPENDRC_SRC_PATH"
+}
+
 # Function to show usage/help
 appendrc_help() {
     echo "Usage: appendrc <command> [options]"
@@ -83,6 +114,8 @@ appendrc_help() {
     echo "  init <filename>        Create a new appendrc file and open it with the default editor"
     echo "  time                   Source all files in sourcables and record timing"
     echo "  source [--fast]        Source all files in sourcables, or only those with source time < 0.020 seconds"
+    echo "  list                   List all files in sourcables"
+    echo "  remove <filename>      Remove a file from sourcables"
     echo "  -h, --help             Show this help message"
 }
 
@@ -100,6 +133,12 @@ appendrc() {
             ;;
         source)
             appendrc_source "$@"
+            ;;
+        list)
+            appendrc_list
+            ;;
+        remove)
+            appendrc_remove "$@"
             ;;
         -h|--help|*)
             appendrc_help
