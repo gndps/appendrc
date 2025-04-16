@@ -1,0 +1,2 @@
+# [ -f "$HOME/.example_package/env" ] && "$HOME/.example_package/env"
+source <(jj util completion bash)
