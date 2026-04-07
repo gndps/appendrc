@@ -1,0 +1,10 @@
+# [ -f "$HOME/.example_package/env" ] && "$HOME/.example_package/env"
+# # Docker
+export COMPOSE_HTTP_TIMEOUT=200 # Increases the timeout for pulling Docker images
+export DOCKER_BUILDKIT=1 # Enable BuildKit builder to speed up builds
+export DOCKER_HOST="unix://${HOME}/.colima/default/docker.sock"
+# Optional: Ryuk is a cleanup container that can cause issues with Colima.
+export TESTCONTAINERS_RYUK_DISABLED=true
+
+# Macs with Apple silicon ONLY!!!
+export DOCKER_DEFAULT_PLATFORM=linux/amd64 # Sets up Docker to pull Apple-silicon-compatible images when available
