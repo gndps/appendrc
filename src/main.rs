@@ -500,6 +500,9 @@ fn main() {
         "help" | "--help" | "-h" => {
             cmd_help();
         }
+        "--version" | "-V" => {
+            println!("appendrc {}", env!("CARGO_PKG_VERSION"));
+        }
         cmd => {
             eprintln!("error: unknown command '{}'", cmd);
             eprintln!("run 'appendrc help' for usage");
