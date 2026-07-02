@@ -1,6 +1,6 @@
 [package]
 name = "appendrc"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "Manage and time shell sourcable files"
 license = "MIT"

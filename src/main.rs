@@ -327,7 +327,18 @@ fn cmd_time() {
     println!("timing.json updated, fast.sh rebuilt");
 }
 
-fn cmd_source(fast: bool) {
+/// Emit a single sourcable as shell to be eval'd. When `verbose`, prepend an
+/// `echo` so the file being sourced is announced on the terminal at source
+/// time; otherwise the file is sourced silently.
+fn emit_source_line(target: &str, verbose: bool) {
+    if verbose {
+        println!("echo 'source {t}'; source {t}", t = target);
+    } else {
+        println!("source {}", target);
+    }
+}
+
+fn cmd_source(fast: bool, verbose: bool) {
     ensure_dirs();
     if fast {
         let fast_path = fast_sh_path();
@@ -338,8 +349,8 @@ fn cmd_source(fast: bool) {
         let content = fs::read_to_string(&fast_path).unwrap_or_default();
         for line in content.lines() {
             let trimmed = line.trim();
-            if trimmed.starts_with("source ") {
-                println!("{}", trimmed);
+            if let Some(target) = trimmed.strip_prefix("source ") {
+                emit_source_line(target.trim(), verbose);
             }
         }
     } else {
@@ -356,7 +367,7 @@ fn cmd_source(fast: bool) {
         entries.sort();
         for name in &entries {
             let file_path = src_dir.join(&name);
-            println!("source {}", file_path.display());
+            emit_source_line(&file_path.display().to_string(), verbose);
         }
     }
 }
@@ -411,8 +422,10 @@ fn cmd_help() {
     println!("  remove <name>          Delete a sourcable file.");
     println!("  list                   List all sourcable files with timing info.");
     println!("  time                   Benchmark all sourcable files and rebuild fast.sh.");
-    println!("  source [--fast]        Print source commands. Use: eval \"$(appendrc source)\"");
-    println!("                         --fast  Only include files that sourced in under 1s.");
+    println!("  source [--fast] [-v]   Print source commands. Use: eval \"$(appendrc source)\"");
+    println!("                         --fast       Only include files that sourced in under 1s.");
+    println!("                         -v/--verbose Announce each file as it is sourced.");
+    println!("                                      Default is quiet (no per-file output).");
     println!("  path add <path>        Add a path to managed PATH list.");
     println!("  path remove <path>     Remove a path from managed PATH list.");
     println!("  path list              List managed paths.");
@@ -464,8 +477,10 @@ fn main() {
             cmd_time();
         }
         "source" => {
-            let fast = args.get(2).map(|a| a == "--fast").unwrap_or(false);
-            cmd_source(fast);
+            let rest = &args[2..];
+            let fast = rest.iter().any(|a| a == "--fast");
+            let verbose = rest.iter().any(|a| a == "-v" || a == "--verbose");
+            cmd_source(fast, verbose);
         }
         "path" => {
             if args.len() < 3 {
